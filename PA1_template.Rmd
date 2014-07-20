@@ -1,20 +1,126 @@
-# Reproducible Research: Peer Assessment 1
+Analyzing Personal Movement by Users of Activity Monitoring Devices
+===================================================================
 
 
-## Loading and preprocessing the data
+```{r, results="hide", echo=TRUE}
+
+library(plyr)
+library(chron)
+library(ggplot2)
+require(lattice)
+library(gridExtra)
+
+df <- read.csv("activity.csv")
+
+df$date <-as.Date(df$date,"%Y-%m-%d")
+
+by_day <- ddply(df, .(format(date, "%m-%d")), summarize, total=sum(steps, na.rm=TRUE), mean=mean(steps, na.rm=TRUE))
+
+colnames(by_day) <- c("Date", "Total", "Mean")
+
+by_day <- na.omit(by_day)
+
+```
+
+# Histogram of total steps taken each day
+
+```{r fig.width=7, fig.height=6,  echo=TRUE}
+
+hist(by_day$Total, xlab="Steps", main="Histogram of total steps taken each day")
+
+```
+
+## Mean and median of total steps by day
+
+```{r,  echo=TRUE}
+
+mean(by_day$Total)
+
+median(by_day$Total)
+
+```
+
+## Average daily activity pattern?
+
+```{r, each=TRUE}
+
+by_five_mins <- ddply(df, .(interval), summarize, mean=mean(steps, na.rm=TRUE))
+
+qplot(interval, mean, data=by_five_mins, geom="line", xlab="5-mins Interval", ylab="Mean Steps", main="Average number of steps across 5-min intervals")
+
+```
+
+## Maximum steps interval
+
+```{r, echo=TRUE}
+
+which.max(by_five_mins$mean)
+
+```
+
+## Adjust for NA values
+
+```{r, echo=TRUE}
+
+# How many NAs are there?
+
+navalues <- apply(df, 2, function(x) length(which(is.na(x))))
+
+```
+
+###There are `r navalues[1]` NA rows in the original activity data.
+
+###Use mean for the day as number for missing data
+
+```{r, echo=TRUE}
+
+df2 <- df
+
+replace_mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
+
+df3 <- ddply(df2, ~ interval, transform, steps = replace_mean(steps))
+
+```
+
+## Histogram of total steps taken each day with missing data filled in
+
+```{r fig.width=7, fig.height=6,  echo=TRUE}
+
+by_day_filled <- ddply(df3, .(format(date, "%m-%d")), summarize, total=sum(steps, na.rm=TRUE), mean=mean(steps, na.rm=TRUE))
+
+colnames(by_day_filled) <- c("Date", "Total", "Mean")
+
+hist(by_day_filled$Total, xlab="Steps", main="Histogram of total steps taken each day")
+
+```
+
+## Mean and median of total steps by day with missing data filled in
+
+```{r,  echo=TRUE}
+
+mean(by_day_filled$Total)
+
+median(by_day_filled$Total)
+
+```
+
+```{r fig.width=7, fig.height=6, echo=TRUE}
+
+df3$day <- weekdays(as.Date(df3$date))
+
+five_min_weekend <- df3[which(df3$day=="Saturday" | df3$day=="Sunday"),]
+
+by_five_min_both <- ddply(five_min_weekend, .(interval), summarize, weekend=mean(steps, na.rm=TRUE))
 
 
+five_min_weekday <- df3[which(df3$day!="Saturday" & df3$day!="Sunday"),]
 
-## What is mean total number of steps taken per day?
+by_five_min_weekday <- ddply(five_min_weekday, .(interval), summarize, mean=mean(steps, na.rm=TRUE))
 
+by_five_min_both$weekday <- by_five_min_weekday$mean
 
+plot1 <- xyplot(weekday ~ interval, data=by_five_min_both, type="l")
+plot2 <- xyplot(weekend ~ interval, data=by_five_min_both, type="l")
+grid.arrange(plot1,plot2, nrow=2)
 
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+```
