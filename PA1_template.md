@@ -77,11 +77,13 @@ qplot(interval, mean, data=by_five_mins, geom="line", xlab="5-mins Interval", yl
 
 
 ```r
-which.max(by_five_mins$mean)
+rw <- which.max(by_five_mins$mean)
+
+by_five_mins$interval[rw]
 ```
 
 ```
-## [1] 104
+## [1] 835
 ```
 
 ## Adjust for NA values
