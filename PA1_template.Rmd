@@ -54,7 +54,9 @@ qplot(interval, mean, data=by_five_mins, geom="line", xlab="5-mins Interval", yl
 
 ```{r, echo=TRUE}
 
-which.max(by_five_mins$mean)
+rw <- which.max(by_five_mins$mean)
+
+by_five_mins$interval[rw]
 
 ```
 
