@@ -239,10 +239,12 @@ qplot(interval, mean, data=by_five_mins, geom=&quot;line&quot;, xlab=&quot;5-min
 
 <h2>Maximum steps interval</h2>
 
-<pre><code class="r">which.max(by_five_mins$mean)
+<pre><code class="r">rw &lt;- which.max(by_five_mins$mean)
+
+by_five_mins$interval[rw]
 </code></pre>
 
-<pre><code>## [1] 104
+<pre><code>## [1] 835
 </code></pre>
 
 <h2>Adjust for NA values</h2>
